@@ -82,7 +82,17 @@ def init_db(db_path: str) -> sqlite3.Connection:
         """
     )
     db.commit()
+    ensure_error_column(db)
     return db
+
+
+def ensure_error_column(db: sqlite3.Connection) -> None:
+    cursor = db.cursor()
+    cursor.execute("PRAGMA table_info(users)")
+    columns = {row[1] for row in cursor.fetchall()}
+    if "error" not in columns:
+        cursor.execute("ALTER TABLE users ADD COLUMN error TEXT")
+        db.commit()
 
 
 def save_result(db: sqlite3.Connection, result: MomoxResult) -> None:
